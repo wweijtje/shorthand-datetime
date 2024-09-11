@@ -35,7 +35,7 @@ if __name__ == '__main__':
         maintainer='Wout Weijtjens',
         maintainer_email='wout.weijtjens@gmail.com',
         keywords=[],
-        packages=['shorthand-datetime'],
+        packages=['shorthand_datetime'],
         classifiers=['Development Status :: 3 - Alpha',
                      'Intended Audience :: Developers',
                      'Programming Language :: Python :: 3.9']
