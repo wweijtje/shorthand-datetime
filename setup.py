@@ -7,7 +7,7 @@ base_path = os.path.dirname(__file__)
 # Read the project version from "__init__.py"
 regexp = re.compile(r'.*__version__ = [\'\"](.*?)[\'\"]', re.S)
 
-init_file = os.path.join(base_path, 'shorthand-datetime', '__init__.py')
+init_file = os.path.join(base_path, 'shorthand_datetime', '__init__.py')
 with open(init_file, 'r') as f:
     module_content = f.read()
 
