@@ -95,7 +95,7 @@ def _timedelta(value: Union[int, float, str], unit: str) -> datetime.timedelta:
         raise ValueError(f"Invalid unit '{unit}'. Must be 'd', 'W', 'M' or 'Y'")
 
 
-def parse_shorthand_datetime(datestr: str) -> Union[datetime.datetime, None]:
+def parse_shorthand_datetime(datestr: str) -> Optional[datetime.datetime]:
     """Parse a shorthand datetime string and return a datetime object. By
     shorthand datetime string we mean a string that can be used to represent
     a datetime in a more human readable way. This function is inspired by
@@ -109,6 +109,9 @@ def parse_shorthand_datetime(datestr: str) -> Union[datetime.datetime, None]:
     - 'now' : current datetime
     - 'now/d' : current datetime rounded to the day
     - 'now/M' : current datetime rounded to the month
+
+    .. note:: The function discards any spaces in the input string, therefore
+              'now - 6d / d' is equivalent to 'now-6d/d'
 
     Parameters
     ----------
@@ -132,22 +135,25 @@ def parse_shorthand_datetime(datestr: str) -> Union[datetime.datetime, None]:
     >>> parse_shorthand_datetime('now-1M/M')
     datetime.datetime(2024, 6, 1, 0, 0)
     """
+    
+    datestr = datestr.replace(" ", "")  # Remove linebreaks
 
-    if "now" in datestr:
-        # Relative datetime string in relation to current day
-        datestr = datestr.replace(" ", "")  # Remove linebreaks
-        value = re.findall(r"[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", datestr)
-        if not value:
-            value = [0]
-
-        unit = re.findall("[dWMY]", datestr)
-
-        dt = datetime.datetime.now() + _timedelta(value[0], unit[0])
-
-        if "/" in datestr:
-            return _roundtimestamp(dt, unit[-1])
-        else:
-            return dt
-
-    else:
+    if not datestr.startswith("now"):
         return None
+
+    if datestr == "now":
+        return datetime.datetime.now()
+
+    # Relative datetime string in relation to current day
+    value = re.findall(r"[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", datestr)
+    if not value:
+        value = [0]
+
+    unit = re.findall("[dWMY]", datestr)
+
+    dt = datetime.datetime.now() + _timedelta(value[0], unit[0])
+
+    if "/" in datestr:
+        return _roundtimestamp(dt, unit[-1])
+    else:
+        return dt
