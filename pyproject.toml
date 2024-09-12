@@ -29,7 +29,7 @@ dependencies = []
 dev     = ["black==24.*", "mypy==1.*", "pycln==2.4.*", "isort==5.*",
            "ruff==0.*", "commitizen==3.*", "pre-commit==3.*",
            "types-PyYAML", "types-pytz", "types-requests"]  #, "jupytext"]
-test  = ["pytest", "pytest-mock", "hypothesis"]
+test  = ["pytest", "pytest-mock", "hypothesis", "pytest-cov"]
 build = ["twine", "build"]
 docs  = ["sphinx", "sphinx-rtd-theme"]
 # -- Project URLs.
