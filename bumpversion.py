@@ -68,9 +68,7 @@ def update_version_in_file(version_str, version_file, version_var):
 
 def main():
     if len(sys.argv) != 2 and len(sys.argv) != 3:
-        print(
-            "Usage: python bumpversion.py <version> or python bumpversion.py <bump_type>"
-        )
+        print("Usage: python bumpversion.py <version> or python bumpversion.py <bump_type>")
         sys.exit(1)
 
     version_str = None
@@ -84,21 +82,15 @@ def main():
             version_str = arg
             parse_version(version_str)  # Validate the version string
     elif len(sys.argv) == 3:
-        print(
-            "Invalid usage. Provide either a version string or a bump type, not both."
-        )
+        print("Invalid usage. Provide either a version string or a bump type, not both.")
         sys.exit(1)
 
     update_version_file(version_str, bump_type)
     with open("./VERSION", "r") as f:
         new_version_str = f.read().strip()
 
-    update_version_in_file(
-        new_version_str, "./shorthand_datetime/version.py", "__version__: str ="
-    )
-    update_version_in_file(
-        new_version_str, "./tests/conftest.py", "VERSION: str ="
-    )
+    update_version_in_file(new_version_str, "./shorthand_datetime/version.py", "__version__: str =")
+    update_version_in_file(new_version_str, "./tests/conftest.py", "VERSION: str =")
     print(f"Version updated to {new_version_str}")
 
 
