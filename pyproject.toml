@@ -1,0 +1,36 @@
+# ** Buildkit: Flit **
+# Flit is a tool for building Python packages. It is configured to use the
+# `flit_core.buildapi` backend, to require Flit Core version 3.2 or higher,
+# and to use the `flit_core` package.
+[build-system]
+build-backend = "flit_core.buildapi"
+requires = ["flit_core >=3.8,<4"]
+# -- Project metadata.
+[project]
+name = "shorthand_datetime"
+authors = [{ name = "Wout Weijtjens", email = "wout.weijtjens@gmail.com" },
+           { name = "Pietro D'Antuono", email = "pietro.dantuono@24sea.eu" }]
+readme = "README.rst"
+dynamic = ["description", "version"]
+classifiers=["Development Status :: 3- Alpha",
+             "Environment :: Console",
+             "Intended Audience :: Science/Research",
+             "Intended Audience :: Developers",
+             "Intended Audience :: Information Technology",
+             "License :: OSI Approved :: MIT License",
+             "Natural Language :: English",
+             "Operating System :: POSIX :: Linux",
+             "Programming Language :: Python :: 3"]
+license = { file = "LICENSE" }
+# -- Project dependencies.
+requires-python = "3"
+dependencies = []
+[project.optional-dependencies]
+test  = ["pytest", "pytest-mock", "hypothesis"]
+build = ["twine", "build"]
+docs  = ["sphinx", "sphinx-rtd-theme"]
+# -- Project URLs.
+[project.urls]
+Homepage = "https://pypi.org/project/shorthand-datetime/"
+Documentation = "https://pypi.org/project/shorthand-datetime/"
+Repository = "https://github.com/wweijtje/shorthand-datetime/"
