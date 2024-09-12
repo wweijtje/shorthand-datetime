@@ -6,7 +6,7 @@ from __future__ import annotations
 
 import datetime
 import re
-from typing import Union
+from typing import Optional, Union
 
 
 def _roundtimestamp(dt: datetime.datetime, target: str) -> datetime.datetime:
@@ -135,7 +135,7 @@ def parse_shorthand_datetime(datestr: str) -> Optional[datetime.datetime]:
     >>> parse_shorthand_datetime('now-1M/M')
     datetime.datetime(2024, 6, 1, 0, 0)
     """
-    
+
     datestr = datestr.replace(" ", "")  # Remove linebreaks
 
     if not datestr.startswith("now"):
