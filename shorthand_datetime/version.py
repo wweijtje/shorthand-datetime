@@ -19,7 +19,7 @@ Attributes:
 import re
 from typing import NamedTuple, Optional
 
-__version__: str = "0.2.0"
+__version__: str = "0.2.1"
 
 _REGEX = "".join(
     [
