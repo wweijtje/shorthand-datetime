@@ -12,7 +12,7 @@ authors = [{ name = "Wout Weijtjens", email = "wout.weijtjens@gmail.com" },
            { name = "Pietro D'Antuono", email = "pietro.dantuono@24sea.eu" }]
 readme = "README.rst"
 dynamic = ["description", "version"]
-classifiers=["Development Status :: 3- Alpha",
+classifiers=["Development Status :: 3 - Alpha",
              "Environment :: Console",
              "Intended Audience :: Science/Research",
              "Intended Audience :: Developers",
