@@ -1,4 +1,4 @@
-name: CI on shorthand_datetime
+name: CI - shorthand_datetime
 on:
   push:
     branches: [ "main" ]
@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 jobs:
-  build:
+  ci:
     runs-on: ubuntu-latest
 
     strategy:

@@ -1,0 +1,111 @@
+name: CI/CD - shorthand_datetime
+
+on:
+  workflow_dispatch:
+    inputs:
+      bumpType:
+        description: 'The type of version bump to perform'
+        required: true
+        default: 'patch'
+
+jobs:
+  # Continuous Integration (CI)
+  ci:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        python-version: ["3.8"]  # Test on multiple Python versions
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install dependencies
+      run: |
+        pip install --upgrade pip
+        pip install '.[dev, test]'  # Ensure that test dependencies are installed
+
+    - name: Run pre-commit hooks
+      run: |
+        pre-commit run --all-files
+
+    - name: Run tests with pytest and collect coverage
+      run: |
+        pytest -v --cov=shorthand_datetime tests/ --cov-report xml:./coverage.xml
+
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v3
+      with:
+        name: coverage-report
+        path: coverage.xml
+
+  # Continuous Deployment (CD)
+  cd:
+    runs-on: ubuntu-latest
+    needs: ci
+    if: github.ref == 'refs/heads/main'  # Only deploy on main branch
+
+    strategy:
+      matrix:
+        python-version: ["3.8"]
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        persist-credentials: true
+
+    # Set up Python
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v3
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    # Bump version and create release tag
+    - name: Bump version and create release tag
+      run: |
+        python bumpversion.py ${{ inputs.bumpType }}
+        NEW_VERSION=$(grep -Po '(?<=__version__: str = ")[^"]+' api_24sea/version.py)
+        git config --local user.email "pipeline@24sea.eu"
+        git config --local user.name "24SEA Pipeline"
+        git checkout -b release/v$NEW_VERSION
+        git commit -am "bump(${{ inputs.bumpType }}): Bump version to $NEW_VERSION [skip ci]"
+        if [ $(git tag -l "v$NEW_VERSION") ]; then
+            echo "Tag exists"
+        else
+            git tag v$NEW_VERSION
+            git push origin release/v$NEW_VERSION --tags
+        fi
+        git fetch origin main
+        git checkout main
+        git merge --no-ff release/v$NEW_VERSION -m "ci(pipeline): Merge release/v$NEW_VERSION to main [skip ci]"
+        git push origin main
+      env:
+        BUMP_TYPE: ${{ inputs.bumpType }}
+
+    # Build distribution
+    - name: Build distribution
+      run: |
+        pip install uv
+        uv venv --python 3.8 venv
+        source ./venv/bin/activate
+        uv pip install --upgrade pip
+        uv pip install build twine
+        python -m build --outdir api_24sea_dist
+
+    # Upload distribution to PyPI
+    - name: Upload to PyPI
+      run: |
+        echo "[pypi]" > ~/.pypirc
+        echo "username = __token__" >> ~/.pypirc
+        echo "password = ${PYPI_TOKEN}" >> ~/.pypirc
+        source ./venv/bin/activate
+        twine check api_24sea_dist/*
+        twine upload --skip-existing api_24sea_dist/*
+      env:
+        TWINE_USERNAME: __token__
+        TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
