@@ -69,7 +69,7 @@ jobs:
     - name: Bump version and create release tag
       run: |
         python bumpversion.py ${{ inputs.bumpType }}
-        NEW_VERSION=$(grep -Po '(?<=__version__: str = ")[^"]+' api_24sea/version.py)
+        NEW_VERSION=$(grep -Po '(?<=__version__: str = ")[^"]+' shorthand_datetime/version.py)
         git config --local user.email "pipeline@24sea.eu"
         git config --local user.name "24SEA Pipeline"
         git checkout -b release/v$NEW_VERSION
@@ -95,7 +95,7 @@ jobs:
         source ./venv/bin/activate
         uv pip install --upgrade pip
         uv pip install build twine
-        python -m build --outdir api_24sea_dist
+        python -m build --outdir shorthand_datetime_dist
 
     # Upload distribution to PyPI
     - name: Upload to PyPI
@@ -104,8 +104,8 @@ jobs:
         echo "username = __token__" >> ~/.pypirc
         echo "password = ${PYPI_TOKEN}" >> ~/.pypirc
         source ./venv/bin/activate
-        twine check api_24sea_dist/*
-        twine upload --skip-existing api_24sea_dist/*
+        twine check shorthand_datetime_dist/*
+        twine upload --skip-existing shorthand_datetime_dist/*
       env:
         TWINE_USERNAME: __token__
         TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
