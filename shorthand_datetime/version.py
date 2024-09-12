@@ -44,10 +44,7 @@ def parse_version(version: str) -> Version:
     version guidelines"""
     match = re.search(_REGEX, version)
     if not match:
-        raise ValueError(
-            f"Version '{version}' does not comply with the semantic"
-            "versioning naming scheme"
-        )
+        raise ValueError(f"Version '{version}' does not comply with the semantic" "versioning naming scheme")
 
     major = int(match.group("major"))
     minor = int(match.group("minor"))

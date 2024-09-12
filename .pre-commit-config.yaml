@@ -7,7 +7,7 @@ default_stages:
   - commit
   - push
 
-exclude: ^notebooks/
+# exclude: ^notebooks/
 
 repos:
 -   repo: meta

@@ -37,9 +37,7 @@ def test_parse_version(major, minor, patch):
     major=hy.integers(min_value=0),
     minor=hy.integers(min_value=0),
     patch=hy.integers(min_value=0),
-    release=hy.text(
-        min_size=1, alphabet=hy.characters(whitelist_categories=["L", "N"])
-    ),
+    release=hy.text(min_size=1, alphabet=hy.characters(whitelist_categories=["L", "N"])),
     num=hy.integers(min_value=0),
 )
 def test_parse_version_with_release_and_num(major, minor, patch, release, num):

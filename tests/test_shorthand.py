@@ -23,67 +23,70 @@ class mydatetime(datetime.datetime):
             return FAKE_TIME.astimezone(tz) if tz else FAKE_TIME
         return FAKE_TIME
 
+
 def test_shorthand_no_strategies():
     """Test the shorthand parsing with fixed inputs"""
     from shorthand_datetime.shorthand import parse_shorthand_datetime
+
     with mock.patch("datetime.datetime", mydatetime):
-        s = 'now+1d'
+        s = "now+1d"
         dt_1d = parse_shorthand_datetime(s)
-        assert dt_1d.strftime('%Y%m%d') == '20241116'
+        assert dt_1d.strftime("%Y%m%d") == "20241116"
 
-        s = 'now+7d'
+        s = "now+7d"
         dt_7d = parse_shorthand_datetime(s)
-        assert dt_7d.strftime('%Y%m%d') == '20241122'
+        assert dt_7d.strftime("%Y%m%d") == "20241122"
 
-        s = 'now+1M'
+        s = "now+1M"
         dt_M = parse_shorthand_datetime(s)
-        assert dt_M.strftime('%Y%m%d') == '20241216'
+        assert dt_M.strftime("%Y%m%d") == "20241216"
 
-        s = 'now+1Y'
+        s = "now+1Y"
         dt_y = parse_shorthand_datetime(s)
-        assert dt_y.strftime('%Y%m%d') == '20251115'
+        assert dt_y.strftime("%Y%m%d") == "20251115"
 
-        s = 'now-1d'
+        s = "now-1d"
         dt_1d = parse_shorthand_datetime(s)
-        assert dt_1d.strftime('%Y%m%d') == '20241114'
+        assert dt_1d.strftime("%Y%m%d") == "20241114"
 
-        s = 'now-7d'
+        s = "now-7d"
         dt_7d = parse_shorthand_datetime(s)
-        assert dt_7d.strftime('%Y%m%d') == '20241108'
+        assert dt_7d.strftime("%Y%m%d") == "20241108"
 
-        s = 'now-1M'
+        s = "now-1M"
         dt_M = parse_shorthand_datetime(s)
-        assert dt_M.strftime('%Y%m%d') == '20241016'
+        assert dt_M.strftime("%Y%m%d") == "20241016"
 
-        s = 'now-1Y'
+        s = "now-1Y"
         dt_y = parse_shorthand_datetime(s)
-        assert dt_y.strftime('%Y%m%d') == '20231116'
+        assert dt_y.strftime("%Y%m%d") == "20231116"
+
 
 def test_rounded_shorthand_no_strategies():
     """Test the shorthand with rounding (e.g., "now/d", "now/M", "now/Y")"""
     from shorthand_datetime.shorthand import parse_shorthand_datetime
 
     with mock.patch("datetime.datetime", mydatetime):
-        s = 'now/d'
+        s = "now/d"
         dt_d = parse_shorthand_datetime(s)
         assert dt_d.second == 0
-        assert dt_d.strftime('%Y%m%d_%H%M%S') == '20241115_000000'
+        assert dt_d.strftime("%Y%m%d_%H%M%S") == "20241115_000000"
 
-        s = 'now/M'
+        s = "now/M"
         dt_7d = parse_shorthand_datetime(s)
-        assert dt_7d.strftime('%Y%m%d') == '20241101'
+        assert dt_7d.strftime("%Y%m%d") == "20241101"
 
-        s = 'now/Y'
+        s = "now/Y"
         dt_7d = parse_shorthand_datetime(s)
-        assert dt_7d.strftime('%Y%m%d') == '20240101'
+        assert dt_7d.strftime("%Y%m%d") == "20240101"
 
-        s = 'now-2Y/Y'
+        s = "now-2Y/Y"
         dt_7d = parse_shorthand_datetime(s)
-        assert dt_7d.strftime('%Y%m%d') == '20220101'
+        assert dt_7d.strftime("%Y%m%d") == "20220101"
 
-        s = 'now-1M/M'
+        s = "now-1M/M"
         dt_7d = parse_shorthand_datetime(s)
-        assert dt_7d.strftime('%Y%m%d') == '20241001'
+        assert dt_7d.strftime("%Y%m%d") == "20241001"
 
 
 def test_patch_datetime():
@@ -96,6 +99,7 @@ def test_patch_datetime():
         assert datetime.datetime.now().hour == FAKE_TIME.hour
         assert datetime.datetime.now().minute == FAKE_TIME.minute
         assert datetime.datetime.now().second == FAKE_TIME.second
+
 
 def generate_shorthand(min_value: int = -600, max_value: int = 600) -> st.SearchStrategy:
     """Generate shorthand expressions dynamically"""
@@ -132,7 +136,7 @@ def test_shorthand(shorthand: str):
         # We won't know the exact output since we're generating floats, but we can check the delta
         if "d" in shorthand:
             # Extract the number of days from the shorthand string
-            actual_delta = abs(datetime.datetime.now() - dt).total_seconds() / (24 * 60 * 60)
+            actual_delta = abs(datetime.datetime.now() - dt).total_seconds() / (24 * 60 * 60)  # type: ignore
         elif "M" in shorthand:
             # For months, we approximate by comparing the difference in months
             actual_delta = abs((datetime.datetime.now().year - dt.year) * 12 + datetime.datetime.now().month - dt.month)  # type: ignore
@@ -142,9 +146,9 @@ def test_shorthand(shorthand: str):
 
         assert abs(actual_delta - delta) < 1e-1
         if "+" in shorthand:
-            assert dt >= datetime.datetime.now()
+            assert dt >= datetime.datetime.now()  # type: ignore
         elif "-" in shorthand:
-            assert dt <= datetime.datetime.now()
+            assert dt <= datetime.datetime.now()  # type: ignore
 
 
 @given(shorthand=generate_shorthand(min_value=-1000, max_value=-601))
