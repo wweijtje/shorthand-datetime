@@ -37,6 +37,10 @@ def test_shorthand_no_strategies():
         dt_7d = parse_shorthand_datetime(s)
         assert dt_7d.strftime("%Y%m%d") == "20241122"
 
+        s = "now+1W"
+        dt_1W = parse_shorthand_datetime(s)
+        assert dt_1W.strftime("%Y%m%d") == "20241122"
+
         s = "now+1M"
         dt_M = parse_shorthand_datetime(s)
         assert dt_M.strftime("%Y%m%d") == "20241216"
@@ -52,6 +56,10 @@ def test_shorthand_no_strategies():
         s = "now-7d"
         dt_7d = parse_shorthand_datetime(s)
         assert dt_7d.strftime("%Y%m%d") == "20241108"
+
+        s = "now-1W"
+        dt_1W = parse_shorthand_datetime(s)
+        assert dt_1W.strftime("%Y%m%d") == "20241108"
 
         s = "now-1M"
         dt_M = parse_shorthand_datetime(s)
@@ -197,3 +205,81 @@ def test_rounded_shorthand(shorthand: str):
         elif "/Y" in shorthand:
             # Check if the date is rounded to the start of the year (month=1, day=1, no hour, minute, second)
             assert dt.month == 1 and dt.day == 1 and dt.hour == 0 and dt.minute == 0 and dt.second == 0  # type: ignore
+
+
+def test_parse_shorthand_datetime_now():
+    """Test parsing 'now'"""
+    from shorthand_datetime.shorthand import parse_shorthand_datetime
+    with mock.patch("datetime.datetime", mydatetime):
+        dt = parse_shorthand_datetime("now")
+        assert dt == datetime.datetime.now()
+
+@given(shorthand=st.text(min_size=1).filter(lambda s: not s.startswith("now")))
+def test_parse_shorthand_not_starting_with_now_returns_None(shorthand: str):
+    """Test parsing a shorthand that does not start with 'now' returns None"""
+    from shorthand_datetime.shorthand import parse_shorthand_datetime
+    with mock.patch("datetime.datetime", mydatetime):
+        dt = parse_shorthand_datetime(shorthand)
+        assert dt is None
+
+@given(
+    shorthand=st.sampled_from([
+        "now + 1d", "now - 1d", "now - 1M", "now - 1Y", "now + 1M", "now + 1Y",
+        "now / d", "now / M", "now / Y", "now - 2Y / Y", "now - 1M / M"
+    ])
+)
+def test_parse_shorthand_with_spaces(shorthand: str):
+    """Test parsing a shorthand with spaces"""
+    from shorthand_datetime.shorthand import parse_shorthand_datetime
+    expected_results = {
+        "now + 1d": "20241116",
+        "now - 1d": "20241114",
+        "now - 1M": "20241016",
+        "now - 1Y": "20231116",
+        "now + 1M": "20241216",
+        "now + 1Y": "20251115",
+        "now / d": "20241115_000000",
+        "now / M": "20241101_000000",
+        "now / Y": "20240101_000000",
+        "now - 2Y / Y": "20220101_000000",
+        "now - 1M / M": "20241001_000000",
+    }
+
+    with mock.patch("datetime.datetime", mydatetime):
+        dt = parse_shorthand_datetime(shorthand)
+        if " / " in shorthand:
+            assert dt.second == 0
+            assert dt.strftime("%Y%m%d_%H%M%S") == expected_results[shorthand]
+        else:
+            assert dt.strftime("%Y%m%d") == expected_results[shorthand]
+
+@given(target=st.sampled_from(["M", "d", "Y"]))
+def test__roundtimestamp_valid(target):
+    """Test the _roundtimestamp function with valid targets"""
+    from shorthand_datetime.shorthand import _roundtimestamp
+    with mock.patch("datetime.datetime", mydatetime):
+        result = _roundtimestamp(datetime.datetime.now(), target)
+        assert result.__class__.__name__ == "datetime"
+
+@given(target=st.text().filter(lambda x: x not in ["M", "d", "Y"]))
+def test__roundtimestamp_invalid(target):
+    """Test the _roundtimestamp function with invalid targets"""
+    from shorthand_datetime.shorthand import _roundtimestamp
+    with mock.patch("datetime.datetime", mydatetime):
+        with pytest.raises(ValueError):
+            _roundtimestamp(datetime.datetime.now(), target)
+
+@given(unit=st.sampled_from(["d", "W", "M", "Y"]))
+def test__timedelta_valid(unit):
+    """Test the _timedelta function with valid units"""
+    from shorthand_datetime.shorthand import _timedelta
+    result = _timedelta(1, unit)
+    assert result.__class__.__name__ == "timedelta"
+
+@given(unit=st.text().filter(lambda x: x not in ["d", "W", "M", "Y"]))
+def test__timedelta_invalid(unit):
+    """Test the _timedelta function with invalid units"""
+    from shorthand_datetime.shorthand import _timedelta
+    with pytest.raises(ValueError):
+        _timedelta(1, unit)
+        
