@@ -1,3 +1,0 @@
-# Package requirements for users
-pytz
-pandas
