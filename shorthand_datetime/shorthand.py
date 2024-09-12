@@ -3,11 +3,13 @@
 
 
 from __future__ import annotations
-import re
+
 import datetime
+import re
 from typing import Union
 
-def _roundtimestamp(dt:datetime.datetime, target: str) -> datetime.datetime:
+
+def _roundtimestamp(dt: datetime.datetime, target: str) -> datetime.datetime:
     """
     Rounds a timestamp to the day
 
@@ -37,11 +39,11 @@ def _roundtimestamp(dt:datetime.datetime, target: str) -> datetime.datetime:
     >>> _roundtimestamp(datetime.datetime(2024, 7, 21, 12, 30), 'Y')
     datetime.datetime(2024, 1, 1, 0, 0)
     """
-    if target == 'd':
+    if target == "d":
         return dt.replace(hour=0, minute=0, second=0, microsecond=0)
-    elif target == 'M':
+    elif target == "M":
         return dt.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
-    elif target == 'Y':
+    elif target == "Y":
         return dt.replace(day=1, month=1, hour=0, minute=0, second=0, microsecond=0)
     raise ValueError(f"Invalid target '{target}'. Must be 'd', 'M' or 'Y'")
 
@@ -84,9 +86,8 @@ def _timedelta(value: Union[int, float, str], unit: str) -> datetime.timedelta:
     elif unit == "W":
         return datetime.timedelta(weeks=int(value))
     elif unit == "M":
-        if int(value) >= 663 or int(value) <= -700:
-            raise ValueError("Value out of range. Please enter a value between "
-                             f"-699 and 662. Value entered: {value}")
+        if int(value) >= 601 or int(value) <= -601:
+            raise ValueError(f"Value out of range. Please enter a value between -600 and 600. Value entered: {value}")
         return datetime.timedelta(weeks=int(value) * 4.34524)
     elif unit == "Y":
         return datetime.timedelta(weeks=int(value) * 52.1775)
@@ -94,7 +95,7 @@ def _timedelta(value: Union[int, float, str], unit: str) -> datetime.timedelta:
         raise ValueError(f"Invalid unit '{unit}'. Must be 'd', 'W', 'M' or 'Y'")
 
 
-def parse_shorthand_datetime(datestr:str) -> Union[datetime.datetime, None]:
+def parse_shorthand_datetime(datestr: str) -> Union[datetime.datetime, None]:
     """Parse a shorthand datetime string and return a datetime object. By
     shorthand datetime string we mean a string that can be used to represent
     a datetime in a more human readable way. This function is inspired by
@@ -132,9 +133,9 @@ def parse_shorthand_datetime(datestr:str) -> Union[datetime.datetime, None]:
     datetime.datetime(2024, 6, 1, 0, 0)
     """
 
-    if 'now' in datestr:
+    if "now" in datestr:
         # Relative datetime string in relation to current day
-        datestr = datestr.replace(' ','') # Remove linebreaks
+        datestr = datestr.replace(" ", "")  # Remove linebreaks
         value = re.findall(r"[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", datestr)
         if not value:
             value = [0]
@@ -143,7 +144,7 @@ def parse_shorthand_datetime(datestr:str) -> Union[datetime.datetime, None]:
 
         dt = datetime.datetime.now() + _timedelta(value[0], unit[0])
 
-        if '/' in datestr:
+        if "/" in datestr:
             return _roundtimestamp(dt, unit[-1])
         else:
             return dt
