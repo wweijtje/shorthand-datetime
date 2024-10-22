@@ -5,12 +5,13 @@
 from __future__ import annotations
 
 import datetime
-import re
 import logging
+import re
 from typing import Optional, Union
 
 # Configure logging
-logging.basicConfig(format='%(message)s', level=logging.DEBUG)
+logging.basicConfig(format="%(message)s", level=logging.DEBUG)
+
 
 def _roundtimestamp(dt: datetime.datetime, target: str) -> datetime.datetime:
     """
@@ -42,7 +43,7 @@ def _roundtimestamp(dt: datetime.datetime, target: str) -> datetime.datetime:
     >>> _roundtimestamp(datetime.datetime(2024, 7, 21, 12, 30), 'Y')
     datetime.datetime(2024, 1, 1, 0, 0)
     """
-    
+
     if target == "s":
         return dt.replace(microsecond=0)
     elif target == "m":
@@ -57,9 +58,8 @@ def _roundtimestamp(dt: datetime.datetime, target: str) -> datetime.datetime:
         return dt.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     elif target == "Y":
         return dt.replace(day=1, month=1, hour=0, minute=0, second=0, microsecond=0)
-    
-    raise ValueError(f"Invalid target '{target}'. "
-                     "Must be 's', 'm', 'h', 'H', 'd', 'W', 'M' or 'Y'")
+
+    raise ValueError(f"Invalid target '{target}'. " "Must be 's', 'm', 'h', 'H', 'd', 'W', 'M' or 'Y'")
 
 
 def _timedelta(value: Union[int, float, str], unit: str) -> datetime.timedelta:
@@ -159,7 +159,7 @@ def parse_shorthand_datetime(datestr: str) -> Optional[datetime.datetime]:
     valid_targets = ["s", "m", "h", "H", "d", "W", "M", "Y"]
 
     dt = datetime.datetime.now()
-    
+
     if datestr == "now":
         return dt
 
@@ -173,22 +173,19 @@ def parse_shorthand_datetime(datestr: str) -> Optional[datetime.datetime]:
     # and it is followed by a valid target
     if "/" in datestr:
         if datestr[-1] == "/":
-            logging.warning("Invalid date string. '/' must be followed by a "
-                             "valid target")
+            logging.warning("Invalid date string. '/' must be followed by a " "valid target")
             return None
         if datestr[-2] != "/":
-            logging.warning("Invalid date string. '/' must be second to last "
-                             "character")
+            logging.warning("Invalid date string. '/' must be second to last " "character")
             return None
         if datestr[-1] not in valid_targets:
-            logging.warning("Invalid date string. '/' must be followed by a "
-                             "valid target")
+            logging.warning("Invalid date string. '/' must be followed by a " "valid target")
             return None
 
     target = None
     if "/" in datestr:
         target = [datestr.split("/")[1][0]]
-        
+
         logging.info("target: %s", target)
         # Strip the target and the "/" from the datestr
         datestr = datestr.split("/")[0]
@@ -205,7 +202,7 @@ def parse_shorthand_datetime(datestr: str) -> Optional[datetime.datetime]:
     if not value:
         value = [1]
     if any(v in ("-", "+") for v in value):
-        value = 1 if value[0] == "+" else -1
+        value = [1] if value[0] == "+" else [-1]
     if not isinstance(value, list):
         value = [value]
 

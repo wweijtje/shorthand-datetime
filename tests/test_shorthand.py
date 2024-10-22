@@ -225,6 +225,7 @@ def test_parse_shorthand_not_starting_with_now_returns_None(shorthand: str):
         dt = parse_shorthand_datetime(shorthand)
         assert dt is None
 
+
 @given(shorthand=st.sampled_from(["-", "+"]))
 def test_parse_shorthand_starting_with_unit_returns_now(shorthand: str):
     """Test parsing a shorthand that starts with a unit returns the current datetime"""
@@ -236,7 +237,7 @@ def test_parse_shorthand_starting_with_unit_returns_now(shorthand: str):
 
 
 @given(shorthand=st.sampled_from(["/"]))
-def test_parse_shorthand_starting_with_unit_returns_now(shorthand: str):
+def test_parse_shorthand_starting_with_unit_returns_none(shorthand: str):
     """Test parsing a shorthand that starts with a unit returns the current datetime"""
     from shorthand_datetime.shorthand import parse_shorthand_datetime
 
@@ -326,9 +327,11 @@ def test__timedelta_invalid(unit):
     with pytest.raises(ValueError):
         _timedelta(1, unit)
 
+
 def test__backslash_not_second_to_last():
     """Test the _backslash_not_second_to_last function"""
     from shorthand_datetime.shorthand import parse_shorthand_datetime
+
     dt = parse_shorthand_datetime("now / ")
     assert dt is None
     dt = parse_shorthand_datetime("now /d")
