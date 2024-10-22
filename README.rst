@@ -8,6 +8,7 @@ Using the package
 ------------------
 
 .. code-block:: python
+
     # Simplest usage example
     from shorthand_datetime.shorthand import parse_shorthand_datetime
 
@@ -15,6 +16,7 @@ Using the package
     dt = parse_shorthand_datetime(string)
 
 .. code-block:: python
+
     # Example with freeze_time for testings
     from freezegun import freeze_time
     from shorthand_datetime import parse_shorthand_datetime
@@ -32,6 +34,7 @@ Using the package
 Output:
 
 .. code-block:: shell
+
     now-7d -> 2023-10-18 12:21:45
     now/d -> 2023-10-25 00:00:00
     now-7d/d -> 2023-10-18 00:00:00
@@ -53,3 +56,4 @@ Typical examples
 
 Acknowledgements
 ----------------
+© 2024 24SEA - Monitoring Offshore Structures. All rights reserved.
