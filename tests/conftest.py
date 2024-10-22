@@ -10,7 +10,7 @@ import pytest
 
 logger = logging.getLogger(__name__)
 
-VERSION: str = "0.2.1"
+VERSION: str = "0.3.0"
 
 # Add custom options to pytest. Here we define the addition of a 'url' argument
 # so you could run `pytest --url <url>` to specify an external url to check
