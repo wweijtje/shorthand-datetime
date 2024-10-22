@@ -27,7 +27,7 @@ Using the package
                    'now-3W+6h', 'now-1M+1W/d']
         for string in strings:
             print(f'{string} -> {parse_shorthand_datetime(string)}')
-        
+
     # Call the test and print the results
     test_now()
 
