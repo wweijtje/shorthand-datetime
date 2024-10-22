@@ -6,8 +6,11 @@ from __future__ import annotations
 
 import datetime
 import re
+import logging
 from typing import Optional, Union
 
+# Configure logging
+logging.basicConfig(format='%(message)s', level=logging.DEBUG)
 
 def _roundtimestamp(dt: datetime.datetime, target: str) -> datetime.datetime:
     """
@@ -18,7 +21,7 @@ def _roundtimestamp(dt: datetime.datetime, target: str) -> datetime.datetime:
     dt : datetime.datetime
         The timestamp to round
     target : str
-        The target to round to. Can be 'd', 'M' or 'Y'
+        The target to round to. Can be 's', 'm', 'h', 'H', 'd', 'W', 'M' or 'Y'
 
     Returns
     -------
@@ -28,7 +31,7 @@ def _roundtimestamp(dt: datetime.datetime, target: str) -> datetime.datetime:
     Raises
     ------
     ValueError
-        If the target is not 'd', 'M' or 'Y'
+        If the target is not 's', 'm', 'h', 'H', 'd', 'W', 'M' or 'Y'
 
     Examples
     --------
@@ -39,13 +42,24 @@ def _roundtimestamp(dt: datetime.datetime, target: str) -> datetime.datetime:
     >>> _roundtimestamp(datetime.datetime(2024, 7, 21, 12, 30), 'Y')
     datetime.datetime(2024, 1, 1, 0, 0)
     """
-    if target == "d":
+    
+    if target == "s":
+        return dt.replace(microsecond=0)
+    elif target == "m":
+        return dt.replace(second=0, microsecond=0)
+    elif target in ["h", "H"]:
+        return dt.replace(minute=0, second=0, microsecond=0)
+    elif target == "d":
         return dt.replace(hour=0, minute=0, second=0, microsecond=0)
+    elif target == "W":
+        return dt.replace(hour=0, minute=0, second=0, microsecond=0) - datetime.timedelta(days=dt.weekday())
     elif target == "M":
         return dt.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
     elif target == "Y":
         return dt.replace(day=1, month=1, hour=0, minute=0, second=0, microsecond=0)
-    raise ValueError(f"Invalid target '{target}'. Must be 'd', 'M' or 'Y'")
+    
+    raise ValueError(f"Invalid target '{target}'. "
+                     "Must be 's', 'm', 'h', 'H', 'd', 'W', 'M' or 'Y'")
 
 
 def _timedelta(value: Union[int, float, str], unit: str) -> datetime.timedelta:
@@ -57,7 +71,7 @@ def _timedelta(value: Union[int, float, str], unit: str) -> datetime.timedelta:
     value : Union[int, float, str]
         The value to convert to a timedelta
     unit : str
-        The unit of the value. Can be 'd', 'W', 'M' or 'Y'
+        The unit of the value. Can be 's', 'm', 'h', 'H', 'd', 'W', 'M' or 'Y'
 
     Returns
     -------
@@ -67,8 +81,8 @@ def _timedelta(value: Union[int, float, str], unit: str) -> datetime.timedelta:
     Raises
     ------
     ValueError
-        If the unit is not 'd', 'W', 'M' or 'Y' or if the value is out of range
-        for 'M'
+        If the unit is not 's', 'm', 'h', 'H', 'd', 'W', 'M' or 'Y' or if the
+        value is out of range for 'M' or 'Y'
 
     Examples
     --------
@@ -81,7 +95,13 @@ def _timedelta(value: Union[int, float, str], unit: str) -> datetime.timedelta:
     >>> _timedelta(1, 'Y')
     datetime.timedelta(days=365, seconds=20952)
     """
-    if unit == "d":
+    if unit == "s":
+        return datetime.timedelta(seconds=int(value))
+    elif unit == "m":
+        return datetime.timedelta(minutes=int(value))
+    elif unit in ["h", "H"]:
+        return datetime.timedelta(hours=int(value))
+    elif unit == "d":
         return datetime.timedelta(days=int(value))
     elif unit == "W":
         return datetime.timedelta(weeks=int(value))
@@ -90,7 +110,7 @@ def _timedelta(value: Union[int, float, str], unit: str) -> datetime.timedelta:
             raise ValueError(f"Value out of range. Please enter a value between -600 and 600. Value entered: {value}")
         return datetime.timedelta(weeks=int(value) * 4.34524)
     elif unit == "Y":
-        return datetime.timedelta(weeks=int(value) * 52.1775)
+        return datetime.timedelta(weeks=int(value) * 52.177142857142854)
     else:
         raise ValueError(f"Invalid unit '{unit}'. Must be 'd', 'W', 'M' or 'Y'")
 
@@ -136,24 +156,68 @@ def parse_shorthand_datetime(datestr: str) -> Optional[datetime.datetime]:
     datetime.datetime(2024, 6, 1, 0, 0)
     """
 
-    datestr = datestr.replace(" ", "")  # Remove linebreaks
+    valid_targets = ["s", "m", "h", "H", "d", "W", "M", "Y"]
 
-    if not datestr.startswith("now"):
+    dt = datetime.datetime.now()
+    
+    if datestr == "now":
+        return dt
+
+    datestr = datestr.replace(" ", "")  # Remove linebreaks
+    # Check if there are more than 1 "/" in the string
+    if datestr.count("/") > 1:
+        logging.warning("Invalid date string. Only one '/' is allowed")
         return None
 
-    if datestr == "now":
-        return datetime.datetime.now()
+    # Check that "/", if there, is always the second to last character,
+    # and it is followed by a valid target
+    if "/" in datestr:
+        if datestr[-1] == "/":
+            logging.warning("Invalid date string. '/' must be followed by a "
+                             "valid target")
+            return None
+        if datestr[-2] != "/":
+            logging.warning("Invalid date string. '/' must be second to last "
+                             "character")
+            return None
+        if datestr[-1] not in valid_targets:
+            logging.warning("Invalid date string. '/' must be followed by a "
+                             "valid target")
+            return None
+
+    target = None
+    if "/" in datestr:
+        target = [datestr.split("/")[1][0]]
+        
+        logging.info("target: %s", target)
+        # Strip the target and the "/" from the datestr
+        datestr = datestr.split("/")[0]
+
+    if not datestr.startswith("now"):
+        if datestr.startswith(("-", "+")):
+            datestr = "now" + datestr
+        else:
+            return None
 
     # Relative datetime string in relation to current day
-    value = re.findall(r"[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?", datestr)
+    value = re.findall(r"[-+]?[.]?[\d]+(?:,\d\d\d)*[\.]?\d*(?:[eE][-+]?\d+)?|[-+](?=[smhHdWMY])", datestr)
+
     if not value:
-        value = [0]
+        value = [1]
+    if any(v in ("-", "+") for v in value):
+        value = 1 if value[0] == "+" else -1
+    if not isinstance(value, list):
+        value = [value]
 
-    unit = re.findall("[dWMY]", datestr)
+    unit = re.findall("[smhHdWMY]", datestr)
+    if not isinstance(unit, list):
+        unit = [unit]
 
-    dt = datetime.datetime.now() + _timedelta(value[0], unit[0])
+    timedelta_list = [_timedelta(int(v), u) for v, u in zip(value, unit)]
+    total_timedelta = sum(timedelta_list, datetime.timedelta())
+    dt = dt + total_timedelta
 
-    if "/" in datestr:
-        return _roundtimestamp(dt, unit[-1])
-    else:
-        return dt
+    if target is not None:
+        dt = _roundtimestamp(dt, target[0])
+
+    return dt
