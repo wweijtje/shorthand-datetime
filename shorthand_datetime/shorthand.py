@@ -186,7 +186,6 @@ def parse_shorthand_datetime(datestr: str) -> Optional[datetime.datetime]:
     if "/" in datestr:
         target = [datestr.split("/")[1][0]]
 
-        logging.info("target: %s", target)
         # Strip the target and the "/" from the datestr
         datestr = datestr.split("/")[0]
 
