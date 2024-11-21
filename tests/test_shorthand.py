@@ -431,6 +431,7 @@ def test_parse_shorthand_datetime_with_quoted_timezone(datestr, expected_tz):
         dt = parse_shorthand_datetime(datestr)
         assert str(dt.tzinfo) == expected_tz
 
+
 def test_warning_timezone_passed_twice():
     """Test the warning when the timezone is passed as an argument and in the date string"""
     from shorthand_datetime.shorthand import parse_shorthand_datetime
