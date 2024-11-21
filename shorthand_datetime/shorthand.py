@@ -7,7 +7,9 @@ from __future__ import annotations
 import datetime
 import logging
 import re
+import warnings
 from typing import Optional, Union
+import pytz
 
 # Configure logging
 logging.basicConfig(format="%(message)s", level=logging.DEBUG)
@@ -115,7 +117,7 @@ def _timedelta(value: Union[int, float, str], unit: str) -> datetime.timedelta:
         raise ValueError(f"Invalid unit '{unit}'. Must be 'd', 'W', 'M' or 'Y'")
 
 
-def parse_shorthand_datetime(datestr: str) -> Optional[datetime.datetime]:
+def parse_shorthand_datetime(datestr: str, tz: Optional[str]=None) -> Optional[datetime.datetime]:
     """Parse a shorthand datetime string and return a datetime object. By
     shorthand datetime string we mean a string that can be used to represent
     a datetime in a more human readable way. This function is inspired by
@@ -137,6 +139,8 @@ def parse_shorthand_datetime(datestr: str) -> Optional[datetime.datetime]:
     ----------
     datestr : str
         The shorthand datetime string
+    tz : Optional[str]
+        The timezone to use. If None, UTC is used
 
     Returns
     -------
@@ -156,9 +160,25 @@ def parse_shorthand_datetime(datestr: str) -> Optional[datetime.datetime]:
     datetime.datetime(2024, 6, 1, 0, 0)
     """
 
+    # Check if the timezone string contains text between quotes
+    if '"' in datestr or "'" in datestr:
+        match = re.search(r'["\'](.*?)["\']', datestr)
+        if match:
+            if tz is not None:
+                warnings.warn(f"\33[31mTimezone passed as argument {tz}. "
+                              f"Ignoring timezone in date string {match.group(1)}\33[0m")
+            else:            
+                tz = match.group(1)
+            datestr = datestr.replace(f'"{match.group(1)}"', '').replace(f"'{match.group(1)}'", '')
+
+    if tz is None:
+        tz = "UTC"
+
+    timezone = _get_timezone(tz)
+
     valid_targets = ["s", "m", "h", "H", "d", "W", "M", "Y"]
 
-    dt = datetime.datetime.now()
+    dt = datetime.datetime.now(timezone)
 
     if datestr == "now":
         return dt
@@ -217,3 +237,39 @@ def parse_shorthand_datetime(datestr: str) -> Optional[datetime.datetime]:
         dt = _roundtimestamp(dt, target[0])
 
     return dt
+
+
+def _get_timezone(tz: str) -> pytz.timezone:
+    """
+    Returns the timezone object for the given timezone string
+
+    Parameters
+    ----------
+    tz : str
+        The timezone string
+
+    Returns
+    -------
+    pytz.timezone
+        The timezone object
+
+    Raises
+    ------
+    pytz.UnknownTimeZoneError
+        If the timezone string is not a valid timezone
+
+    Examples
+    --------
+    >>> _get_timezone('UTC')
+    <UTC>
+    >>> _get_timezone('America/New_York')
+    <DstTzInfo 'America/New_York' LMT-1 day, 19:04:00 STD>
+    >>> _get_timezone('Invalid/Timezone')
+    Unknown timezone 'Invalid/Timezone'. Using UTC instead.
+    <UTC>
+    """
+    try:
+        return pytz.timezone(tz)
+    except pytz.UnknownTimeZoneError:
+        logging.warning(f"Unknown timezone '{tz}'. Using UTC instead.")
+        return pytz.utc

@@ -6,7 +6,7 @@ import pytest
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-FAKE_TIME: datetime.datetime = datetime.datetime(2024, 11, 15, 17, 5, 55)
+FAKE_TIME: datetime.datetime = datetime.datetime(2024, 11, 15, 17, 5, 55, tzinfo=datetime.timezone.utc)
 
 
 # Helper class for datetime patching
@@ -338,3 +338,104 @@ def test__backslash_not_second_to_last():
     assert isinstance(dt, datetime.datetime)
     dt = parse_shorthand_datetime("now /d/")
     assert dt is None
+
+
+@pytest.mark.parametrize(
+    "datestr, tz, expected",
+    [
+        ("now", "UTC", "20241115_170555"),
+        ("now", "America/New_York", "20241115_120555"),
+        ("now-6d/d", "UTC", "20241109_000000"),
+        ("now-1W", "America/New_York", "20241108_120555"),
+        ("now-2M", "UTC", "20240915_210552"),
+        ("now-1M/M", "America/New_York", "20241001_000000"),
+        ("now-3Y", "UTC", "20211115_234907"),
+        ("now/d", "America/New_York", "20241115_000000"),
+        ("now/M", "UTC", "20241101_000000"),
+        ("now/Y", "America/New_York", "20240101_000000"),
+    ],
+)
+def test_parse_shorthand_datetime_with_timezone(datestr, tz, expected):
+    """Test parse_shorthand_datetime with various inputs and timezones"""
+    from shorthand_datetime.shorthand import parse_shorthand_datetime
+    with mock.patch("datetime.datetime", mydatetime):
+        dt = parse_shorthand_datetime(datestr, tz)
+        assert dt.strftime("%Y%m%d_%H%M%S") == expected
+
+
+    @pytest.mark.parametrize(
+        "datestr",
+        [
+            "now-6d/d/d",
+            "now-1W/W",
+            "now-2M/M/M",
+            "now-1M/M/M",
+            "now-3Y/Y/Y",
+            "now/d/d",
+            "now/M/M",
+            "now/Y/Y",
+        ],
+    )
+    def test_parse_shorthand_datetime_invalid(datestr):
+        """Test parse_shorthand_datetime with invalid inputs"""
+        from shorthand_datetime.shorthand import parse_shorthand_datetime
+
+        with mock.patch("datetime.datetime", mydatetime):
+            dt = parse_shorthand_datetime(datestr)
+            assert dt is None
+
+
+    @pytest.mark.parametrize(
+        "datestr, expected",
+        [
+            ("now+1d", "20241116_170555"),
+            ("now+7d", "20241122_170555"),
+            ("now+1W", "20241122_170555"),
+            ("now+1M", "20241215_170555"),
+            ("now+1Y", "20251115_170555"),
+            ("now-1d", "20241114_170555"),
+            ("now-7d", "20241108_170555"),
+            ("now-1W", "20241108_170555"),
+            ("now-1M", "20241015_170555"),
+            ("now-1Y", "20231115_170555"),
+        ],
+    )
+    def test_parse_shorthand_datetime_relative(datestr, expected):
+        """Test parse_shorthand_datetime with relative inputs"""
+        from shorthand_datetime.shorthand import parse_shorthand_datetime
+
+        with mock.patch("datetime.datetime", mydatetime):
+            dt = parse_shorthand_datetime(datestr)
+            assert dt.strftime("%Y%m%d_%H%M%S") == expected
+
+
+@pytest.mark.parametrize(
+    "datestr, expected_tz",
+    [
+        ('now "UTC"', "UTC"),
+        ("now 'America/New_York'", "America/New_York"),
+        ('now-6d/d "Europe/London"', "Europe/London"),
+        ("now-1W 'Asia/Tokyo'", "Asia/Tokyo"),
+        ('now-2M "Australia/Sydney"', "Australia/Sydney"),
+        ("now-1M/M 'Europe/Berlin'", "Europe/Berlin"),
+        ('now-3Y "America/Los_Angeles"', "America/Los_Angeles"),
+        ("now 'UTC' - 1d", "UTC"),
+        ("now 'America/New_York' - 1d", "America/New_York"),
+    ],
+)
+def test_parse_shorthand_datetime_with_quoted_timezone(datestr, expected_tz):
+    """Test parse_shorthand_datetime with quoted timezone"""
+    from shorthand_datetime.shorthand import parse_shorthand_datetime, _get_timezone
+
+    with mock.patch("datetime.datetime", mydatetime):
+        dt = parse_shorthand_datetime(datestr)
+        assert str(dt.tzinfo) == expected_tz
+
+def test_warning_timezone_passed_twice():
+    """Test the warning when the timezone is passed as an argument and in the date string"""
+    from shorthand_datetime.shorthand import parse_shorthand_datetime
+
+    with mock.patch("datetime.datetime", mydatetime):
+        with pytest.warns(UserWarning):
+            dt = parse_shorthand_datetime('now-6d/d "UTC"', "America/New_York")
+            assert dt.strftime("%Y%m%d_%H%M%S") == "20241109_000000"

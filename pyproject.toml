@@ -24,7 +24,7 @@ classifiers=["Development Status :: 3 - Alpha",
 license = { file = "LICENSE" }
 # -- Project dependencies.
 # requires-python = ">=3.0"
-dependencies = []
+dependencies = ["pytz"]
 [project.optional-dependencies]
 dev     = ["black==24.*", "mypy==1.*", "pycln==2.4.*", "isort==5.*",
            "ruff==0.*", "commitizen==3.*", "pre-commit==3.*",
