@@ -9,6 +9,7 @@ import logging
 import re
 import warnings
 from typing import Optional, Union
+
 import pytz
 
 # Configure logging
@@ -117,7 +118,7 @@ def _timedelta(value: Union[int, float, str], unit: str) -> datetime.timedelta:
         raise ValueError(f"Invalid unit '{unit}'. Must be 'd', 'W', 'M' or 'Y'")
 
 
-def parse_shorthand_datetime(datestr: str, tz: Optional[str]=None) -> Optional[datetime.datetime]:
+def parse_shorthand_datetime(datestr: str, tz: Optional[str] = None) -> Optional[datetime.datetime]:
     """Parse a shorthand datetime string and return a datetime object. By
     shorthand datetime string we mean a string that can be used to represent
     a datetime in a more human readable way. This function is inspired by
@@ -165,11 +166,13 @@ def parse_shorthand_datetime(datestr: str, tz: Optional[str]=None) -> Optional[d
         match = re.search(r'["\'](.*?)["\']', datestr)
         if match:
             if tz is not None:
-                warnings.warn(f"\33[31mTimezone passed as argument {tz}. "
-                              f"Ignoring timezone in date string {match.group(1)}\33[0m")
-            else:            
+                warnings.warn(
+                    f"\33[31mTimezone passed as argument {tz}. "
+                    f"Ignoring timezone in date string {match.group(1)}\33[0m"
+                )
+            else:
                 tz = match.group(1)
-            datestr = datestr.replace(f'"{match.group(1)}"', '').replace(f"'{match.group(1)}'", '')
+            datestr = datestr.replace(f'"{match.group(1)}"', "").replace(f"'{match.group(1)}'", "")
 
     if tz is None:
         tz = "UTC"
@@ -239,7 +242,7 @@ def parse_shorthand_datetime(datestr: str, tz: Optional[str]=None) -> Optional[d
     return dt
 
 
-def _get_timezone(tz: str) -> pytz.timezone:
+def _get_timezone(tz: str) -> datetime.tzinfo:
     """
     Returns the timezone object for the given timezone string
 

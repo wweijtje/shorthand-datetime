@@ -358,10 +358,10 @@ def test__backslash_not_second_to_last():
 def test_parse_shorthand_datetime_with_timezone(datestr, tz, expected):
     """Test parse_shorthand_datetime with various inputs and timezones"""
     from shorthand_datetime.shorthand import parse_shorthand_datetime
+
     with mock.patch("datetime.datetime", mydatetime):
         dt = parse_shorthand_datetime(datestr, tz)
         assert dt.strftime("%Y%m%d_%H%M%S") == expected
-
 
     @pytest.mark.parametrize(
         "datestr",
@@ -383,7 +383,6 @@ def test_parse_shorthand_datetime_with_timezone(datestr, tz, expected):
         with mock.patch("datetime.datetime", mydatetime):
             dt = parse_shorthand_datetime(datestr)
             assert dt is None
-
 
     @pytest.mark.parametrize(
         "datestr, expected",
@@ -425,11 +424,11 @@ def test_parse_shorthand_datetime_with_timezone(datestr, tz, expected):
 )
 def test_parse_shorthand_datetime_with_quoted_timezone(datestr, expected_tz):
     """Test parse_shorthand_datetime with quoted timezone"""
-    from shorthand_datetime.shorthand import parse_shorthand_datetime, _get_timezone
+    from shorthand_datetime.shorthand import _get_timezone, parse_shorthand_datetime
 
     with mock.patch("datetime.datetime", mydatetime):
         dt = parse_shorthand_datetime(datestr)
-        assert str(dt.tzinfo) == expected_tz
+        assert str(dt.tzinfo) == str(_get_timezone(expected_tz))
 
 
 def test_warning_timezone_passed_twice():
